@@ -1,0 +1,20 @@
+version: '3.9'
+services:
+  prom-compacter:
+    image: quay.io/thanos/thanos:v0.31.0
+    container_name: prom-compacter
+    user: root
+    volumes:
+      - ./minio-bucket.yml:/etc/thanos/minio-bucket.yml
+    command:
+      - compact
+      - --wait
+      - --wait-interval=5m
+      - --consistency-delay=30m
+      - --retention.resolution-1h=365d
+      - --retention.resolution-5m=10d
+      - --retention.resolution-raw=40h
+      - --objstore.config-file=/etc/thanos/minio-bucket.yml
+      - --http-address=0.0.0.0:19095
+    ports:
+      - 19095:19095

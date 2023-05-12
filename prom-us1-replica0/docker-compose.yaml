@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+  prom-us1-replica0:
+    image: quay.io/prometheus/prometheus:v2.43.1
+    container_name: prom-us1-replica0
+    user: root
+    volumes:
+      - ./data:/prometheus
+      - ./prom-us1-replica0-config.yaml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=2h
+      - --storage.tsdb.min-block-duration=2h
+      - --storage.tsdb.max-block-duration=2h
+      - --web.listen-address=0.0.0.0:9093
+      - --web.external-url=http://192.168.0.118:9093
+      - --web.enable-lifecycle
+      - --web.enable-admin-api
+    ports:
+      - 9093:9093
+
+  prom-us1-0-sidecar:
+    image: quay.io/thanos/thanos:v0.31.0
+    container_name: prom-us1-0-sidecar
+    user: root
+    volumes:
+      - ./data:/prometheus
+      - ./prom-us1-replica0-config.yaml:/etc/prometheus/prometheus.yml
+      - ./minio-bucket.yml:/etc/thanos/minio-bucket.yml
+    command:
+      - sidecar
+      - --tsdb.path=/prometheus
+      - --objstore.config-file=/etc/thanos/minio-bucket.yml
+      - --shipper.upload-compacted
+      - --http-address=0.0.0.0:19093
+      - --grpc-address=0.0.0.0:19193
+      - --reloader.config-file=/etc/prometheus/prometheus.yml
+      - --prometheus.url=http://192.168.0.118:9093
+    ports:
+      - 19093:19093
+      - 19193:19193

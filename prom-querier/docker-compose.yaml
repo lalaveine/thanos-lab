@@ -1,0 +1,18 @@
+version: '3.9'
+services:
+  thanos-querier:
+    image: quay.io/thanos/thanos:v0.31.0
+    container_name: thanos-querier
+    user: root
+    command:
+      - query
+      - --http-address=0.0.0.0:9090
+      - --grpc-address=0.0.0.0:19190
+      - --query.replica-label=replica
+      - --store=192.168.0.118:19191
+      - --store=192.168.0.118:19192
+      - --store=192.168.0.118:19193
+      - --store=192.168.0.118:19194
+    ports:
+      - 9090:9090
+      - 19190:19190

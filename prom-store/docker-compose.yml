@@ -1,0 +1,16 @@
+version: '3.9'
+services:
+  prom-store:
+    image: quay.io/thanos/thanos:v0.31.0
+    container_name: prom-store
+    user: root
+    volumes:
+      - ./minio-bucket.yml:/etc/thanos/minio-bucket.yml
+    command:
+      - store
+      - --http-address=0.0.0.0:19094
+      - --grpc-address=0.0.0.0:19194
+      - --objstore.config-file=/etc/thanos/minio-bucket.yml
+    ports:
+      - 19194:19194
+      - 19094:19094
